@@ -53,13 +53,34 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 };
 
 const mockRetrieveApiKeyFromServer = async (
+  chain: string,
+  address: string,
+  nonce: string,
   message: string,
   signature: string,
 ): Promise<string> => {
-  console.log('Calling server to retrieve API key...', message, signature);
-  await new Promise((r) => setTimeout(r, Math.random() * 1000));
+  console.log('Calling server to retrieve JWT...', message, signature);
 
-  return `secret_key_${Math.random()}`;
+  let retVal = '';
+
+  await fetch(`https://api.v2.walletchat.fun/signin`, {
+    body: JSON.stringify({
+      name: chain,
+      address: address,
+      nonce,
+      msg: message,
+      sig: signature,
+    }),
+    headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+  })
+  .then((response) => response.json())
+  .then(async (signInData) => {
+    console.log('Got JWT !');
+    retVal = signInData.access;
+  })
+
+  return retVal;
 };
 
 export const signInWithEthereum = async () => {
@@ -74,12 +95,31 @@ export const signInWithEthereum = async () => {
 
   const address = getAddress(account);
 
+  //get Nonce for WalletChat
+  let nonce = ''
+  await fetch(` https://api.v2.walletchat.fun/users/${address}/nonce`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then((response) => response.json())
+    .then(async (usersData: { Nonce: string }) => {
+      console.log('✅[GET][Nonce]:', usersData)
+      nonce = usersData.Nonce
+    })
+    .catch((error) => {
+      console.log('🚨[GET][Nonce]:', error)
+    })
+
+  const statement =
+          'You are signing a plain-text message to prove you own this wallet address. No gas fees or transactions will occur.'
   const siweMessage = new SiweMessage({
     domain: window.location.hostname,
     uri: window.location.origin,
     version: '1',
+    nonce: nonce,
+    chainId: 1,
     address,
-    statement: 'Sign-in with Ethereum to authenticate your usage of the snap',
+    statement,
   });
 
   const signature = await window.ethereum.request<string>({
@@ -92,6 +132,9 @@ export const signInWithEthereum = async () => {
   }
 
   const apiKey = await mockRetrieveApiKeyFromServer(
+    "1",
+    address,
+    nonce,
     siweMessage.toMessage(),
     signature,
   );
@@ -100,7 +143,7 @@ export const signInWithEthereum = async () => {
     method: 'wallet_invokeSnap',
     params: {
       snapId: defaultSnapOrigin,
-      request: { method: 'set_api_key', params: { apiKey } },
+      request: { method: 'set_api_key', params: { apiKey, address } },
     },
   });
 };
@@ -136,12 +179,24 @@ export const checkIsSignedIn = async (): Promise<boolean> => {
  */
 
 export const makeAuthenticatedRequest = async (): Promise<number> => {
+  const accounts = await window.ethereum.request<string[]>({
+    method: 'eth_requestAccounts',
+  });
+
+  const account = accounts?.[0];
+  if (!account) {
+    throw new Error('Must accept wallet connection request.');
+  }
+
+  const address = getAddress(account);
+
   const result = await window.ethereum.request<{
     secretResult: number;
   }>({
     method: 'wallet_invokeSnap',
     params: {
       snapId: defaultSnapOrigin,
+      address: address,
       request: { method: 'make_authenticated_request' },
     },
   });

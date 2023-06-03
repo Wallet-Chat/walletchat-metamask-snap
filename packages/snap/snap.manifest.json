@@ -7,7 +7,7 @@
     "url": "https://github.com/ziad-saab/siwe-metamask-snap.git"
   },
   "source": {
-    "shasum": "JckepxXPG30I3T9f23KApmeie1MSCkPGZ28w4C8r8+8=",
+    "shasum": "WVus2JHhsCOQ4vYL6MbWdt39inj5+WPzZ6W4cM3yX+s=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -22,7 +22,8 @@
     "endowment:rpc": {
       "dapps": true,
       "snaps": false
-    }
+    },
+    "endowment:network-access": {}
   },
   "manifestVersion": "0.1"
 }
