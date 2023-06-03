@@ -103,6 +103,26 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
       }
 
       throw new Error('Must SIWE before making request.');
+
+
+      case 'inAppNotify':
+        return snap.request({
+          method: 'snap_notify',
+          params: {
+            type: 'inApp',
+            message: `Message Waiting at WalletChat.fun`,
+          },
+        });
+        
+      case 'nativeNotify':
+        return snap.request({
+          method: 'snap_notify',
+          params: {
+            type: 'native',
+            message: `New Message Waiting at WalletChat.fun`,
+          },
+        });
+
     default:
       throw new Error('Method not found.');
   }

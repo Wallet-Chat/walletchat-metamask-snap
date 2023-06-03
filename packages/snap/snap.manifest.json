@@ -1,17 +1,17 @@
 {
   "version": "0.1.0",
-  "description": "A snap with a companion Dapp that uses SIWE to retrieve an API key",
-  "proposedName": "SIWE Snap Example",
+  "description": "Wallet-to-Wallet Chat Notifications via WalletChat.fun - log in to https://app.walletchat.fun to read and respond!",
+  "proposedName": "WalletChat.fun",
   "repository": {
     "type": "git",
     "url": "https://github.com/ziad-saab/siwe-metamask-snap.git"
   },
   "source": {
-    "shasum": "2In9gR9LHujCR3LlY+q3iU2YtVGZsKYYcW9c/GUfP4s=",
+    "shasum": "hq+3oBqSBs7+tFHBETmQ8KGhBz1F02LEJGJ2yRq7tT8=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
-        "iconPath": "images/icon.svg",
+        "iconPath": "images/wc_logo.svg",
         "packageName": "siwe-metamask-snap",
         "registry": "https://registry.npmjs.org/"
       }
@@ -23,7 +23,8 @@
       "dapps": true,
       "snaps": false
     },
-    "endowment:network-access": {}
+    "endowment:network-access": {},
+    "snap_notify": {}
   },
   "manifestVersion": "0.1"
 }

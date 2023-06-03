@@ -179,35 +179,33 @@ export const checkIsSignedIn = async (): Promise<boolean> => {
  */
 
 export const makeAuthenticatedRequest = async (): Promise<number> => {
-  const accounts = await window.ethereum.request<string[]>({
-    method: 'eth_requestAccounts',
-  });
-
-  const account = accounts?.[0];
-  if (!account) {
-    throw new Error('Must accept wallet connection request.');
-  }
-
-  const address = getAddress(account);
-
   const result = await window.ethereum.request<{
-    secretResult: number;
   }>({
     method: 'wallet_invokeSnap',
     params: {
       snapId: defaultSnapOrigin,
-      address: address,
       request: { method: 'make_authenticated_request' },
     },
   });
 
-  if (typeof result?.secretResult !== 'number') {
+  if (typeof result !== 'number') {
     throw new Error(
       `Unexpected result from request: ${JSON.stringify(result)}`,
     );
   }
 
-  return result.secretResult;
+  //for test - send the count to the notification tab
+  const resultNotify = await window.ethereum.request<{
+  }>({
+    method: 'wallet_invokeSnap',
+    params: {
+      snapId: defaultSnapOrigin,
+      request: { method: 'inAppNotify' },
+    },
+  });
+
+
+  return result;  //for test GUI
 };
 
 export const isLocalSnap = (snapId: string) => snapId.startsWith('local:');
