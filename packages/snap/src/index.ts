@@ -19,6 +19,7 @@ const getSnapState = async () => {
 const setSnapState = async (apiKey: string | null, address: string | null) => {
   const state = await getSnapState();
   const hasNotified = state?.hasNotified || false
+  const unreadCount = state?.unreadCount || 0
   
   return snap.request({
     method: 'snap_manageState',
@@ -27,7 +28,8 @@ const setSnapState = async (apiKey: string | null, address: string | null) => {
       newState: {
         apiKey,
         address,
-        hasNotified
+        hasNotified,
+        unreadCount
       },
     },
   });
@@ -37,6 +39,7 @@ const setSnapStateHasNotified = async (hasNotified: boolean) => {
   const state = await getSnapState();
   const apiKey = state?.apiKey as string
   const address = state?.address as string
+  const unreadCount = state?.unreadCount as number
 
   return snap.request({
     method: 'snap_manageState',
@@ -45,7 +48,28 @@ const setSnapStateHasNotified = async (hasNotified: boolean) => {
       newState: {
         apiKey,
         address,
-        hasNotified
+        hasNotified,
+        unreadCount
+      },
+    },
+  });
+};
+
+const setSnapStateUnreadCount = async (unreadCount: number) => {
+  const state = await getSnapState();
+  const apiKey = state?.apiKey as string
+  const address = state?.address as string
+  const hasNotified = state?.hasNotified as boolean
+
+  return snap.request({
+    method: 'snap_manageState',
+    params: {
+      operation: 'update',
+      newState: {
+        apiKey,
+        address,
+        hasNotified,
+        unreadCount
       },
     },
   });
@@ -85,24 +109,42 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
       const apiKey = state?.apiKey as string
       const address = state?.address as string
       const hasNotified = state?.hasNotified 
+      const unreadCount = state?.unreadCount
+
       let newMessages = 0
       if (apiKey) {
         newMessages = await makeRequestWithApiKey(apiKey, address);
       }
 
-      if(newMessages > 0 && !hasNotified) {
-        //don't alert the user again 
-        await setSnapStateHasNotified(true)
+      if(newMessages > 0) {
+        if (!hasNotified){
+          //don't alert the user again 
+          await setSnapStateHasNotified(true)
 
-        return snap.request({
-          method: 'snap_dialog',
-          params: {
-            type: 'alert',
-            content: panel([heading('New Message at WalletChat.fun'), 
-            text('Unread Count: ' + newMessages.toString() + 
-            '\n\n Future unread message notifications can be found in the Notifications tab!')]),
-          },
-        });
+          return snap.request({
+            method: 'snap_dialog',
+            params: {
+              type: 'alert',
+              content: panel([heading('New Message at WalletChat.fun'), 
+              text('Unread Count: ' + newMessages.toString() + 
+              '\n\n Future unread message notifications can be found in the Notifications tab!')]),
+            },
+          });
+        } else {
+          //only add a new message if unread count has changed
+          if (unreadCount != newMessages) {
+            await setSnapStateUnreadCount(newMessages)
+
+            const msg = newMessages.toString() + ' unread messages at WalletChat.fun'
+            return snap.request({
+              method: 'snap_notify',
+              params: {
+                type: 'inApp',
+                message: msg,
+              },
+            });
+          }
+        }
       } else {
         return null
       }
@@ -170,14 +212,14 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
           },
         });
         
-      case 'nativeNotify':
-        return snap.request({
-          method: 'snap_notify',
-          params: {
-            type: 'native',
-            message: `New Message Waiting at WalletChat.fun`,
-          },
-        });
+      // case 'nativeNotify':
+      //   return snap.request({
+      //     method: 'snap_notify',
+      //     params: {
+      //       type: 'native',
+      //       message: `New Message Waiting at WalletChat.fun`,
+      //     },
+      //   });
 
     default:
       throw new Error('Method not found.');
