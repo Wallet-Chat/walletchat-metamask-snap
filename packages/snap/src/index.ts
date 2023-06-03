@@ -1,4 +1,5 @@
-import { OnRpcRequestHandler } from '@metamask/snaps-types';
+import { OnRpcRequestHandler, OnCronjobHandler } from '@metamask/snaps-types';
+import { panel, text, heading } from '@metamask/snaps-ui'; //might not need these long term
 
 const getSnapState = async () => {
   const state = await snap.request({
@@ -15,14 +16,36 @@ const getSnapState = async () => {
   return null;
 };
 
-const setSnapState = (apiKey: string | null, address: string | null) => {
+const setSnapState = async (apiKey: string | null, address: string | null) => {
+  const state = await getSnapState();
+  const hasNotified = state?.hasNotified || false
+  
   return snap.request({
     method: 'snap_manageState',
     params: {
       operation: 'update',
       newState: {
         apiKey,
-        address
+        address,
+        hasNotified
+      },
+    },
+  });
+};
+
+const setSnapStateHasNotified = async (hasNotified: boolean) => {
+  const state = await getSnapState();
+  const apiKey = state?.apiKey as string
+  const address = state?.address as string
+
+  return snap.request({
+    method: 'snap_manageState',
+    params: {
+      operation: 'update',
+      newState: {
+        apiKey,
+        address,
+        hasNotified
       },
     },
   });
@@ -53,6 +76,39 @@ const makeRequestWithApiKey = async (apiKey: string, address: string) => {
     })
 
     return retVal
+};
+
+export const onCronjob: OnCronjobHandler = async ({ request }) => {
+  switch (request.method) {
+    case 'fireCronjob':
+      const state = await getSnapState();
+      const apiKey = state?.apiKey as string
+      const address = state?.address as string
+      const hasNotified = state?.hasNotified 
+      let newMessages = 0
+      if (apiKey) {
+        newMessages = await makeRequestWithApiKey(apiKey, address);
+      }
+
+      if(newMessages > 0 && !hasNotified) {
+        //don't alert the user again 
+        await setSnapStateHasNotified(true)
+
+        return snap.request({
+          method: 'snap_dialog',
+          params: {
+            type: 'alert',
+            content: panel([heading('New Message at WalletChat.fun'), 
+            text('Unread Count: ' + newMessages.toString() + 
+            '\n\n Future unread message notifications can be found in the Notifications tab!')]),
+          },
+        });
+      } else {
+        return null
+      }
+    default:
+      throw new Error('Method not found.');
+  }
 };
 
 /**

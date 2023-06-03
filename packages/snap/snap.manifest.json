@@ -7,7 +7,7 @@
     "url": "https://github.com/ziad-saab/siwe-metamask-snap.git"
   },
   "source": {
-    "shasum": "hq+3oBqSBs7+tFHBETmQ8KGhBz1F02LEJGJ2yRq7tT8=",
+    "shasum": "3tFQ1oNT8M0Aw+mByI/ucmWvx6iXusv4digePQRosdI=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -23,6 +23,17 @@
       "dapps": true,
       "snaps": false
     },
+    "endowment:cronjob": {
+      "jobs": [
+        {
+          "expression": "* * * * *",
+          "request": {
+            "method": "fireCronjob"
+          }
+        }
+      ]
+    },
+    "snap_dialog": {},
     "endowment:network-access": {},
     "snap_notify": {}
   },
