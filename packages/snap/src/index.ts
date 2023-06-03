@@ -1,6 +1,6 @@
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 
-const getApiKey = async () => {
+const getSnapState = async () => {
   const state = await snap.request({
     method: 'snap_manageState',
     params: {
@@ -15,7 +15,7 @@ const getApiKey = async () => {
   return null;
 };
 
-const setApiKey = (apiKey: string | null, address: string | null) => {
+const setSnapState = (apiKey: string | null, address: string | null) => {
   return snap.request({
     method: 'snap_manageState',
     params: {
@@ -23,33 +23,6 @@ const setApiKey = (apiKey: string | null, address: string | null) => {
       newState: {
         apiKey,
         address
-      },
-    },
-  });
-};
-
-const getCurrAddress = async () => {
-  const state = await snap.request({
-    method: 'snap_manageState',
-    params: {
-      operation: 'get',
-    },
-  });
-
-  if (state && 'address' in state && typeof state.address === 'string') {
-    return state.address;
-  }
-
-  return null;
-};
-
-const setCurrAddress = (address: string | null) => {
-  return snap.request({
-    method: 'snap_manageState',
-    params: {
-      operation: 'update',
-      newState: {
-        address,
       },
     },
   });
@@ -63,7 +36,7 @@ const makeRequestWithApiKey = async (apiKey: string, address: string) => {
     ` https://api.v2.walletchat.fun/v1/get_unread_cnt/${address}`,
     {
       method: 'GET',
-      credentials: 'include',
+      //credentials: 'include',  //had to remove for Metamask Snaps
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
@@ -93,9 +66,9 @@ const makeRequestWithApiKey = async (apiKey: string, address: string) => {
 export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
   switch (request.method) {
     case 'remove_api_key':
-      await setApiKey(null, null);
+      await setSnapState(null, null);
       return true;
-    case 'set_api_key':
+    case 'set_snap_state':
       console.log('attempting setting API Key...', request.params);
       if (
         (request.params &&
@@ -105,38 +78,26 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
         'address' in request.params &&
         typeof request.params.address === 'string'
       ) {
-        await setApiKey(request.params.apiKey, request.params.address);
+        await setSnapState(request.params.apiKey, request.params.address);
         console.log('setting API Key...', request.params.apiKey);
         return true;
       }
 
       throw new Error('Must provide params.apiKey.');
-    case 'set_address':
-      console.log('attempting setting address...', request.params);
-      if (
-        request.params &&
-        'address' in request.params &&
-        typeof request.params.address === 'string'
-      ) {
-        await setCurrAddress(request.params.address);
-        console.log('setting Address...', request.params.address);
-        return true;
-      }
-
-      throw new Error('Must provide params.address.');
+  
     case 'is_signed_in':
       try {
-        const apiKey = await getApiKey();
-        return Boolean(apiKey);
+        const state = await getSnapState();
+        return Boolean(state?.apiKey);
       } catch (error) {
         return false;
       }
 
     case 'make_authenticated_request':
       // eslint-disable-next-line no-case-declarations
-      const stateJson = await getApiKey();
-      const apiKey = stateJson?.apiKey as string
-      const address = stateJson?.address as string
+      const state = await getSnapState();
+      const apiKey = state?.apiKey as string
+      const address = state?.address as string
       if (apiKey) {
         return makeRequestWithApiKey(apiKey, address);
       }

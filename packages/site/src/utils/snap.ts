@@ -143,7 +143,7 @@ export const signInWithEthereum = async () => {
     method: 'wallet_invokeSnap',
     params: {
       snapId: defaultSnapOrigin,
-      request: { method: 'set_api_key', params: { apiKey, address } },
+      request: { method: 'set_snap_state', params: { apiKey, address } },
     },
   });
 };

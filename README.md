@@ -7,4 +7,4 @@ This repository shows an example of a snap requiring a ficticious API key to mak
 ## Relevant parts in the code
 
 - [`signInWithEthereum` function in the Dapp](packages/site/src/utils/snap.ts#L65)
-- [`set_api_key` method in the snap](packages/snap/src/index.ts#L54)
+- [`set_snap_state` method in the snap](packages/snap/src/index.ts#L54)
