@@ -1,15 +1,14 @@
 {
-  "name": "@metamask/template-snap-monorepo",
-  "version": "0.1.0",
-  "private": true,
-  "description": "",
-  "homepage": "https://github.com/MetaMask/template-snap-monorepo#readme",
+  "name": "walletchat-metamask-snap-debug",
+  "version": "0.1.1",
+  "description": "Metamask Snap to get WalletChat.fun unread message notifications directly in the MetaMask browser extension!  Requires Metamas Flask version of Metamask",
+  "homepage": "https://app.walletchat.fun",
   "bugs": {
-    "url": "https://github.com/MetaMask/template-snap-monorepo/issues"
+    "url": "https://app.walletchat.fun/dm/0x17FA0A61bf1719D12C08c61F211A063a58267A19"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MetaMask/template-snap-monorepo.git"
+    "url": "git+https://github.com/Wallet-Chat/walletchat-metamask-snap"
   },
   "license": "(MIT-0 OR Apache-2.0)",
   "author": "",

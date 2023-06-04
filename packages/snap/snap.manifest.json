@@ -1,18 +1,18 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Wallet-to-Wallet Chat Notifications via WalletChat.fun - log in to https://app.walletchat.fun to read and respond!",
   "proposedName": "WalletChat.fun",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ziad-saab/siwe-metamask-snap.git"
+    "url": "https://github.com/Wallet-Chat/walletchat-metamask-snap"
   },
   "source": {
-    "shasum": "DvDRukvMb4lLdUXoLk5UB46aEPcdF+n3+lHdvWdKcD4=",
+    "shasum": "06zMeHJRP2+mrNC9OBfUuPZ1y/8oSnhXsuEWuGZkv8A=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
         "iconPath": "images/wc_logo.svg",
-        "packageName": "siwe-metamask-snap",
+        "packageName": "walletchat-metamask-snap",
         "registry": "https://registry.npmjs.org/"
       }
     }
