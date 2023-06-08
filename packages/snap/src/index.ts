@@ -162,12 +162,48 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
 
           const lastUnreadMsg = await getLastUnreadMessage(apiKey, address)
 
+          console.log("last unread MSG: ", lastUnreadMsg)
+
+          let chatHistory = ''
+          await fetch(
+            ` https://api.v2.walletchat.fun/v1/getall_chatitems/${lastUnreadMsg.toaddr}/${lastUnreadMsg.fromaddr}`,
+            {
+              method: 'GET',
+              //credentials: 'include',  //had to remove for Metamask Snaps
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
+              },
+            }
+          )
+          .then((response) => response.json())
+          .then((chatData) => {
+            console.log('✅ [GET][Chat History]:', chatData)
+            chatHistory = chatData
+          })
+          .catch((error) => {
+            console.log('🚨🚨[GET][Unread Count] Error:', error)
+          })
+
           let from = lastUnreadMsg?.sender_name || lastUnreadMsg.fromaddr
+          let convoBody = ''
+          // for chatHistory
+          Object.values(chatHistory).forEach(val => {
+            if(address.toLowerCase() === val.fromaddr.toLowerCase()) { 
+              convoBody += ' **' + from + ':** ' + val.message + '  \r\n  '
+            } else {
+              convoBody += ' **me:** ' + val.message + '  \r\n  '
+            }
+          });
+          // chatHistoryPrintable = {...
+          //   text('**Respond Here or at WalletChat.fun:** '))
+          // }
+
           const diagResponse = await snap.request({
             method: 'snap_dialog',
             params: {
               type: 'prompt',
-              content: panel([heading('New Message From: ' + from), text(lastUnreadMsg?.message + '\r\n \r\n \r\n \r\n **Respond Here or at WalletChat.fun:** ')]),
+              content: panel([heading('New Message From: ' + from), text(convoBody)]),
               placeholder: 'Enter response to message here...',
             },
           });
@@ -254,7 +290,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
       await setSnapState(null, null);
       return true;
     case 'set_snap_state':
-      console.log('attempting setting API Key...', request.params);
       if (
         (request.params &&
         'apiKey' in request.params &&
@@ -264,7 +299,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
         typeof request.params.address === 'string'
       ) {
         await setSnapState(request.params.apiKey, request.params.address);
-        console.log('setting API Key...', request.params.apiKey);
         return true;
       }
 
