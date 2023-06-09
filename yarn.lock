@@ -17310,9 +17310,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"walletchat-metamask-snap-debug@workspace:.":
+"walletchat-metamask-snap-main@workspace:.":
   version: 0.0.0-use.local
-  resolution: "walletchat-metamask-snap-debug@workspace:."
+  resolution: "walletchat-metamask-snap-main@workspace:."
   dependencies:
     "@metamask/eslint-config": ^10.0.0
     "@metamask/eslint-config-jest": ^10.0.0

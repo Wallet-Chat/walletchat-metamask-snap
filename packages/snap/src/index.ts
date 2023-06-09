@@ -19,7 +19,11 @@ const getSnapState = async () => {
 const setSnapState = async (apiKey: string | null, address: string | null) => {
   const state = await getSnapState();
   const isDialogOn = state?.isDialogOn || true
-  const unreadCount = state?.unreadCount || 0
+  let unreadCount = state?.unreadCount || 0
+
+  if (apiKey == null) {
+    unreadCount = 0
+  }
   
   return snap.request({
     method: 'snap_manageState',
@@ -76,7 +80,6 @@ const setSnapStateUnreadCount = async (unreadCount: number) => {
 };
 
 const getUnreadCountFromAPI = async (apiKey: string, address: string) => {
-  //console.log('Making authenticated API call from snap...', address);
   let retVal = 0
 
   await fetch(
@@ -92,7 +95,7 @@ const getUnreadCountFromAPI = async (apiKey: string, address: string) => {
   )
     .then((response) => response.json())
     .then((count) => {
-      console.log('✅ [GET][Unread Count] UNREAD COUNT:', count)
+      //console.log('✅ [GET][Unread Count] SNAPS UNREAD COUNT:', count)
       retVal = count
     })
     .catch((error) => {
@@ -103,7 +106,6 @@ const getUnreadCountFromAPI = async (apiKey: string, address: string) => {
 };
 
 const getLastUnreadMessage = async (apiKey: string, address: string) => {
-  //console.log('Making authenticated API call from snap...', address);
   let chatData = ''
 
   await fetch(
@@ -120,7 +122,7 @@ const getLastUnreadMessage = async (apiKey: string, address: string) => {
     .then((response) => response.json())
     .then((chatItem) => {
       if (chatItem?.message) {
-        console.log('✅ [GET][Unread Msg] UNREAD MSG DATA:', chatItem)
+        //console.log('✅ [GET][Unread Msg] UNREAD MSG DATA:', chatItem)
         chatData = chatItem
       }
     })
@@ -146,16 +148,15 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
       }
 
       if(newMessages > 0) {
-        //user is allows to turn of Snaps Dialog Alerts, and just get passive notification in the Metamask Notification Tab
+        //user is allowed to turn off Snaps Dialog Alerts
         if (isDialogOn) {
           const lastUnreadMsg = await getLastUnreadMessage(apiKey, address)
-
-          console.log("last unread MSG: ", lastUnreadMsg)
+          //console.log("last unread MSG: ", lastUnreadMsg)
 
           let chatHistory = ''
-          //get most recent 8 messages
+          //get most recent 6 messages
           await fetch(
-            ` https://api.v2.walletchat.fun/v1/get_n_chatitems/${lastUnreadMsg.toaddr}/${lastUnreadMsg.fromaddr}/8`,
+            ` https://api.v2.walletchat.fun/v1/get_n_chatitems/${lastUnreadMsg.toaddr}/${lastUnreadMsg.fromaddr}/6`,
             {
               method: 'GET',
               //credentials: 'include',  //had to remove for Metamask Snaps
@@ -205,12 +206,13 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
                 //end marking item as read
               }
             } else {
-              const msgText = ' **me:** ' + ' _' + val.message.trim() + '_ '
+              const msgText = ' **me:** ' + val.message.trim()
               convoBody.push(text(msgText))
             }
           });
-          //end looping through each message
+          //end looping through most recent N messages to build chat history in Snaps Dialog Prompt
 
+          //Show user the Dialog Prompt
           const diagResponse = await snap.request({
             method: 'snap_dialog',
             params: {
@@ -220,11 +222,12 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
             },
           });
 
+          //If the user responded - post the message to WalletChat
           if (diagResponse) {
             console.log("got response: ", diagResponse)
             const timestamp = new Date()
 
-            //send the response message:
+            //send the response message to WalletChat API
             await fetch(
               ` https://api.v2.walletchat.fun/v1/create_chatitem`,
               {
@@ -284,11 +287,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
       await setSnapState(null, null);
       return true;
     case `set_dialog_on`:
-      setSnapStateisDialogOn(true)
-      return true;
+      const retVal = await setSnapStateisDialogOn(true)
+      return retVal;
     case `set_dialog_off`:
-      setSnapStateisDialogOn(false)
-      return true;
+      const result = await setSnapStateisDialogOn(false)
+      return result;
     case 'set_snap_state':
       if (
         (request.params &&
@@ -303,7 +306,16 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
       }
 
       throw new Error('Must provide params.apiKey.');
+
+    case 'get_snap_state':
+      try {
+        const state = await getSnapState();
+        return state;
+      } catch (error) {
+        return false;
+      }
   
+    //Currently Unused in full dApp - Reserved for Future Use/Testing
     case 'is_signed_in':
       try {
         const state = await getSnapState();
@@ -312,6 +324,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
         return false;
       }
 
+    //Currently Unused in full dApp - Reserved for Future Use/Testing
     case 'make_authenticated_request':
       // eslint-disable-next-line no-case-declarations
       const state = await getSnapState();
@@ -323,6 +336,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
 
       throw new Error('Must SIWE before making request.');
 
+    //Currently Unused in full dApp - Reserved for Future Use/Testing
     case 'inAppNotify':
       return snap.request({
         method: 'snap_notify',

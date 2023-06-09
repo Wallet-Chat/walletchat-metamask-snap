@@ -1,6 +1,6 @@
-# TypeScript Example Snap
+# WalletChat.Fun Metamask Snap
 
-This Snap demonstrates how to develop a Snap with TypeScript.
+This Snap enables WalletChat notifications natively in Metamask, and users can respond directly in Metamask with enabled new message pop-ups!
 
 ## Notes
 
