@@ -155,7 +155,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
           let chatHistory = ''
           //get most recent 8 messages
           await fetch(
-            ` https://api.v2.walletchat.fun/v1/getall_chatitems/${lastUnreadMsg.toaddr}/${lastUnreadMsg.fromaddr}/8`,
+            ` https://api.v2.walletchat.fun/v1/get_n_chatitems/${lastUnreadMsg.toaddr}/${lastUnreadMsg.fromaddr}/8`,
             {
               method: 'GET',
               //credentials: 'include',  //had to remove for Metamask Snaps
