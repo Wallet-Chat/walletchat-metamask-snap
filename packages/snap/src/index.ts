@@ -86,7 +86,6 @@ const getUnreadCountFromAPI = async (apiKey: string, address: string) => {
     ` https://api.v2.walletchat.fun/v1/get_unread_cnt/${address}`,
     {
       method: 'GET',
-      //credentials: 'include',  //had to remove for Metamask Snaps
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
@@ -95,7 +94,6 @@ const getUnreadCountFromAPI = async (apiKey: string, address: string) => {
   )
     .then((response) => response.json())
     .then((count) => {
-      //console.log('✅ [GET][Unread Count] SNAPS UNREAD COUNT:', count)
       retVal = count
     })
     .catch((error) => {
@@ -112,7 +110,6 @@ const getLastUnreadMessage = async (apiKey: string, address: string) => {
     ` https://api.v2.walletchat.fun/v1/get_last_unread/${address}`,
     {
       method: 'GET',
-      //credentials: 'include',  //had to remove for Metamask Snaps
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
@@ -122,7 +119,6 @@ const getLastUnreadMessage = async (apiKey: string, address: string) => {
     .then((response) => response.json())
     .then((chatItem) => {
       if (chatItem?.message) {
-        //console.log('✅ [GET][Unread Msg] UNREAD MSG DATA:', chatItem)
         chatData = chatItem
       }
     })
@@ -151,7 +147,6 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
         //user is allowed to turn off Snaps Dialog Alerts
         if (isDialogOn) {
           const lastUnreadMsg = await getLastUnreadMessage(apiKey, address)
-          //console.log("last unread MSG: ", lastUnreadMsg)
 
           let chatHistory = ''
           //get most recent 6 messages
@@ -159,7 +154,6 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
             ` https://api.v2.walletchat.fun/v1/get_n_chatitems/${lastUnreadMsg.toaddr}/${lastUnreadMsg.fromaddr}/6`,
             {
               method: 'GET',
-              //credentials: 'include',  //had to remove for Metamask Snaps
               headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${apiKey}`,
@@ -176,41 +170,38 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
           })
 
           //format messages for convo look within Snaps Dialog
-          let from = lastUnreadMsg?.sender_name || lastUnreadMsg.fromaddr
           let convoBody = []
-          convoBody.push(heading('Recent Chat History With: ' + from))
-          convoBody.push(text('**<<Full History at WalletChat.fun>>** '))
-          // for chatHistory
+          let prevAddr = ''
+          convoBody.push(heading('New 💬 at walletchat.fun'))
+          //for last N (currently 6) messages we need to manually format the chat data 
           Object.values(chatHistory).forEach(async val => {
+            const from = val?.sender_name || val.fromaddr
+            if(prevAddr.toLowerCase() != val.fromaddr.toLowerCase()) {
+              prevAddr = val.fromaddr
+              convoBody.push(text(' **' + from + ':** '))
+            }
+            convoBody.push(text(val.message.trim()))
+            
             if(address.toLowerCase() != val.fromaddr.toLowerCase()) { 
-              const msgText = ' **' + from + ':** ' + val.message.trim()
-              convoBody.push(text(msgText))
-
+              //only mark unread items from the other party as read
               if(!val.read) {
-                //mark item as read
                 await fetch(
-                  ` https://api.v2.walletchat.fun/v1/update_chatitem/${val.fromaddr}/${val.toaddr}`,
-                  {
-                    method: 'PUT',
-                    //credentials: 'include',   //MM Snaps CORS didn't like this
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${apiKey}`,
-                    },
-                    body: JSON.stringify({ fromaddr: val.fromaddr,
-                                          toaddr: val.toaddr,
-                                          timestamp: val.timestamp,
-                                          read: true }),
-                  }
-                )
-                //end marking item as read
+                ` https://api.v2.walletchat.fun/v1/update_chatitem/${val.fromaddr}/${val.toaddr}`,
+                {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${apiKey}`,
+                  },
+                  body: JSON.stringify({ fromaddr: val.fromaddr,
+                                         toaddr: val.toaddr,
+                                         timestamp: val.timestamp,
+                                         read: true }),
+                }) //end marking item as read
               }
-            } else {
-              const msgText = ' **me:** ' + val.message.trim()
-              convoBody.push(text(msgText))
             }
           });
-          //end looping through most recent N messages to build chat history in Snaps Dialog Prompt
+          //end looping through most recent N messages to build chat history for Snaps Dialog Prompt
 
           //Show user the Dialog Prompt
           const diagResponse = await snap.request({
@@ -232,7 +223,6 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
               ` https://api.v2.walletchat.fun/v1/create_chatitem`,
               {
                 method: 'POST',
-                //credentials: 'include',  //MM Snaps CORS didn't like this
                 headers: {
                   'Content-Type': 'application/json',
                   Authorization: `Bearer ${apiKey}`,
@@ -314,7 +304,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
       } catch (error) {
         return false;
       }
-  
+
     //Currently Unused in full dApp - Reserved for Future Use/Testing
     case 'is_signed_in':
       try {
