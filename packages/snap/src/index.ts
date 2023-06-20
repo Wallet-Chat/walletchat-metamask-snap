@@ -129,9 +129,13 @@ const getLastUnreadMessage = async (apiKey: string, address: string) => {
     return chatData
 }
 
+let canRunMutex = true //only one dialog prompt should be running at a time
 export const onCronjob: OnCronjobHandler = async ({ request }) => {
   switch (request.method) {
     case 'fireCronjob':
+      if(!canRunMutex) {return}
+
+      canRunMutex = false
       const state = await getSnapState();
       const apiKey = state?.apiKey as string
       const address = state?.address as string
@@ -270,6 +274,8 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
             },
           });
         }
+
+        canRunMutex = true
       } else {
         return null
       }
