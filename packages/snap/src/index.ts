@@ -1,5 +1,5 @@
 import { OnRpcRequestHandler, OnCronjobHandler } from '@metamask/snaps-types';
-import { panel, text, heading } from '@metamask/snaps-ui'; 
+import { panel, text, heading, divider } from '@metamask/snaps-ui'; 
 
 const getSnapState = async () => {
   const state = await snap.request({
@@ -172,14 +172,29 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
           //format messages for convo look within Snaps Dialog
           let convoBody = []
           let prevAddr = ''
-          convoBody.push(heading('New 💬 at walletchat.fun'))
+          let hasDivider = false
+          let lastPushWasUsername = false
+          //convoBody.push(heading('New 💬 at WalletChat'))
           //for last N (currently 6) messages we need to manually format the chat data 
           Object.values(chatHistory).forEach(async val => {
+            lastPushWasUsername = false
             const from = val?.sender_name || val.fromaddr
             if(prevAddr.toLowerCase() != val.fromaddr.toLowerCase()) {
               prevAddr = val.fromaddr
+              lastPushWasUsername = true //just for divider logic below
               convoBody.push(text(' **' + from + ':** '))
             }
+            if(!val.read && !hasDivider) {
+              hasDivider = true
+
+              //if the previous item in the body is a username header
+              //then put the divider in above the name
+              if(lastPushWasUsername){
+                convoBody.splice(convoBody.length-1, 0, divider());
+              } else {
+                convoBody.push(divider())
+              }
+            } 
             convoBody.push(text(val.message.trim()))
             
             if(address.toLowerCase() != val.fromaddr.toLowerCase()) { 
