@@ -1,13 +1,13 @@
 {
-  "version": "0.1.6",
-  "description": "Wallet-to-Wallet Chat Notifications via WalletChat.fun - log in to https://snaps.walletchat.fun to read and respond!",
+  "version": "0.1.7",
+  "description": "Wallet-to-Wallet Chat Notifications via WalletChat.fun - log in to https://app.walletchat.fun to read and respond!",
   "proposedName": "app.walletchat.fun 💬",
   "repository": {
     "type": "git",
     "url": "https://github.com/Wallet-Chat/walletchat-metamask-snap"
   },
   "source": {
-    "shasum": "rsYjd67ga1CcGAvRilE2Zi+udCGckNADmPe9Gpuqq34=",
+    "shasum": "CQodDqfUI5BhciW8CKcd90L8Ga611SHYWoQkwyx4F1k=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",

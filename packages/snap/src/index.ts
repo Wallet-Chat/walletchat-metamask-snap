@@ -79,6 +79,7 @@ const setSnapStateUnreadCount = async (unreadCount: number) => {
   });
 };
 
+//get unread count from WalletChat API
 const getUnreadCountFromAPI = async (apiKey: string, address: string) => {
   let retVal = 0
 
@@ -103,6 +104,7 @@ const getUnreadCountFromAPI = async (apiKey: string, address: string) => {
     return retVal
 };
 
+//Last unread message is needed just to get TO and FROM address
 const getLastUnreadMessage = async (apiKey: string, address: string) => {
   let chatData = ''
 
@@ -130,6 +132,7 @@ const getLastUnreadMessage = async (apiKey: string, address: string) => {
 }
 
 let canRunMutex = true //only one dialog prompt should be running at a time
+//Cron Jobs run every 30 seconds or so currently, polling for new messages
 export const onCronjob: OnCronjobHandler = async ({ request }) => {
   switch (request.method) {
     case 'fireCronjob':
@@ -148,7 +151,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
       }
 
       if(newMessages > 0) {
-        //user is allowed to turn off Snaps Dialog Alerts
+        // Snaps Dialog Alerts - On by default, user can turn off in WalletChat Web App
         if (isDialogOn) {
           const lastUnreadMsg = await getLastUnreadMessage(apiKey, address)
 
@@ -166,19 +169,17 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
           )
           .then((response) => response.json())
           .then((chatData) => {
-            console.log('✅ [GET][Chat History]:', chatData)
             chatHistory = chatData
           })
           .catch((error) => {
             console.log('🚨🚨[GET][Unread Count] Error:', error)
           })
 
-          //format messages for convo look within Snaps Dialog
+          //Programmatically format Snaps dialog box with recent chat history
           let convoBody = []
           let prevAddr = ''
           let hasDivider = false
           let lastPushWasUsername = false
-          //convoBody.push(heading('New 💬 at WalletChat'))
           //for last N (currently 6) messages we need to manually format the chat data 
           Object.values(chatHistory).forEach(async val => {
             lastPushWasUsername = false
