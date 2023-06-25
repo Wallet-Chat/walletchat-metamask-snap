@@ -248,14 +248,14 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
                   Authorization: `Bearer ${apiKey}`,
                 },
                 body: JSON.stringify({ fromaddr: lastUnreadMsg.toaddr,
-                                        toaddr: lastUnreadMsg.fromaddr,
-                                        message: diagResponse,
-                                        nftid: '0',
-                                        lit_access_conditions: '',
-                                        encrypted_sym_lit_key: '',
-                                        timestamp,
-                                        read: false,
-                                        nftaddr: ''}),
+                                       toaddr: lastUnreadMsg.fromaddr,
+                                       message: diagResponse,
+                                       nftid: '0',
+                                       lit_access_conditions: '',
+                                       encrypted_sym_lit_key: '',
+                                       timestamp,
+                                       read: false,
+                                       nftaddr: ''}),
               }
             )
           }
