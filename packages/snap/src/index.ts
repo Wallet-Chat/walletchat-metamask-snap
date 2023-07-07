@@ -293,7 +293,10 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
  * @returns The result of `snap_dialog`.
  * @throws If the request method is not valid for this snap.
  */
-export const onRpcRequest: OnRpcRequestHandler = async ({ request }) => {
+export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
+  if (!origin.endsWith("walletchat.fun")) {
+        throw new Error('Only WalletChat.fun domains allowed.');
+  }
   switch (request.method) {
     case 'remove_api_key':
       await setSnapState(null, null);
