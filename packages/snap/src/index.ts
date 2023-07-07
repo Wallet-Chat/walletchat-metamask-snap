@@ -294,7 +294,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
  * @throws If the request method is not valid for this snap.
  */
 export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
-  if (!origin.endsWith("walletchat.fun")) {
+  if (!origin.endsWith(".walletchat.fun")) {
         throw new Error('Only WalletChat.fun domains allowed.');
   }
   switch (request.method) {
