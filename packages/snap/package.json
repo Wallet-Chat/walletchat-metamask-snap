@@ -1,12 +1,17 @@
 {
   "name": "walletchat-metamask-snap",
-  "version": "0.2.1",
-  "description": "Metamask Snap to get WalletChat.fun unread message notifications directly in the MetaMask browser extension!",
+  "version": "0.2.2",
+  "description": "Metamask Snap to get WalletChat.fun message notifications directly in the MetaMask browser extension!",
   "repository": {
     "type": "git",
     "url": "https://github.com/Wallet-Chat/walletchat-metamask-snap"
   },
   "license": "(MIT-0 OR Apache-2.0)",
+  "author": {
+    "name": "WalletChat Labs, Inc",
+    "email": "contact@walletchat.fun",
+    "url": "https://docs.walletchat.fun/metamask-integration"
+  },
   "main": "src/index.ts",
   "files": [
     "dist/",
